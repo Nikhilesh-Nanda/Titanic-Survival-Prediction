@@ -84,4 +84,3 @@ st.write("**Survived:** 0 = No, 1 = Yes")
 st.write("**Sex:** 0 = Male, 1 = Female")
 
 st.write("--- ")
-st.markdown("**About this predictor:** This model is trained on the Titanic dataset and predicts survival based on the provided passenger characteristics. It is for illustrative purposes and should not be used for critical decision-making.")
