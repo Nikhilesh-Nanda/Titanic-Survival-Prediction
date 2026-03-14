@@ -1,7 +1,8 @@
 pandas
 numpy
 scikit-learn
-streamlit
 matplotlib
 seaborn
+streamlit>=1.24.0
+pillow
 altair<5
