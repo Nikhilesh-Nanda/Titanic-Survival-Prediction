@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import pickle
 
+# --- Streamlit Page Configuration ---
+st.set_page_config(
+    page_title="Titanic Survival Predictor",
+    page_icon="🚢",
+    layout="centered",
+    initial_sidebar_state="expanded",
+)
+
 # Load the trained model
 # Ensure 'titanic_survival_model.pkl' is in the same directory as this app.py file
 try:
@@ -20,22 +28,29 @@ def map_age_group(val):
     elif (val > 35) and (val < 60): return "M"
     elif val <= 35: return "Y"
 
-# Streamlit App Title
-st.title('Titanic Survival Prediction')
-st.write('Enter passenger details to predict survival.')
+# --- Streamlit App Title and Description ---
+st.title('🚢 Titanic Survival Predictor 🌊')
+st.markdown("### Enter passenger details to predict their survival fate!")
+st.write("--- ")
 
-# Input widgets for features
+# --- Input Widgets for Features (in Sidebar) ---
 with st.sidebar:
-    st.header('Passenger Details')
-    pclass = st.selectbox('Passenger Class (Pclass)', [1, 2, 3], format_func=lambda x: f'Class {x}')
-    sex_input = st.radio('Sex', ['male', 'female'])
-    age = st.slider('Age', 0.0, 80.0, 29.0, step=1.0)
-    sibsp = st.number_input('Number of Siblings/Spouses Aboard (SibSp)', 0, 8, 0)
-    parch = st.number_input('Number of Parents/Children Aboard (Parch)', 0, 6, 0)
-    fare = st.number_input('Fare (Ticket Price)', 0.0, 512.0, 32.0, step=0.1)
-    embarked_input = st.selectbox('Port of Embarkation', ['S', 'C', 'Q'], format_func=lambda x: {'S': 'Southampton', 'C': 'Cherbourg', 'Q': 'Queenstown'}[x])
+    st.header('Passenger Details Input')
+    st.markdown("Fill in the information below:")
 
-# Preprocess inputs to match model training
+    with st.expander("Demographics"): # Grouping related inputs
+        pclass = st.selectbox('Passenger Class (Pclass)', [1, 2, 3], format_func=lambda x: f'Class {x}')
+        sex_input = st.radio('Sex', ['male', 'female'])
+        age = st.slider('Age', 0.0, 80.0, 29.0, step=1.0)
+
+    with st.expander("Travel Information"): # Grouping related inputs
+        sibsp = st.number_input('Number of Siblings/Spouses Aboard (SibSp)', 0, 8, 0, help="Number of siblings (brothers, sisters) or spouses aboard the Titanic.")
+        parch = st.number_input('Number of Parents/Children Aboard (Parch)', 0, 6, 0, help="Number of parents or children aboard the Titanic.")
+        fare = st.number_input('Fare (Ticket Price)', 0.0, 512.0, 32.0, step=0.1, help="Ticket fare in British Pounds.")
+        embarked_input = st.selectbox('Port of Embarkation', ['S', 'C', 'Q'], format_func=lambda x: {'S': 'Southampton', 'C': 'Cherbourg', 'Q': 'Queenstown'}[x])
+
+
+# --- Preprocess inputs to match model training ---
 sex = 0 if sex_input == 'male' else 1
 family_size = sibsp + parch
 
@@ -52,16 +67,21 @@ age_group = age_group_map.get(age_group_str, 1) # Default to 'Y' if None
 input_data = pd.DataFrame([[pclass, sex, int(age), family_size, fare, embarked, age_group]],
                             columns=['Pclass', 'Sex', 'Age', 'familySize', 'Fare', 'Embarked', 'AgeGroup'])
 
-# Make prediction
+# --- Make Prediction ---
 if st.button('Predict Survival'):
     prediction = model.predict(input_data)
     prediction_proba = model.predict_proba(input_data)
 
     st.subheader('Prediction Result:')
     if prediction[0] == 1:
-        st.success(f"The passenger is likely to survive! (Probability: {prediction_proba[0][1]:.2f})")
+        st.success(f"🎉 The passenger is likely to survive! (Probability: {prediction_proba[0][1]:.2f})")
     else:
-        st.error(f"The passenger is likely \'not\' to survive. (Probability: {prediction_proba[0][0]:.2f})")
+        st.error(f"😔 The passenger is likely NOT to survive. (Probability: {prediction_proba[0][0]:.2f})")
 
-st.write("**Note:** 0 = Not Survived, 1 = Survived")
-st.write("0 = Male, 1 = Female")
+st.write("--- ")
+st.info("**Legend:**")
+st.write("**Survived:** 0 = No, 1 = Yes")
+st.write("**Sex:** 0 = Male, 1 = Female")
+
+st.write("--- ")
+st.markdown("**About this predictor:** This model is trained on the Titanic dataset and predicts survival based on the provided passenger characteristics. It is for illustrative purposes and should not be used for critical decision-making.")
